@@ -111,9 +111,29 @@ void MuJoCoSimulator::setActuatorCommands(const swerve_chassis::WheelCommand whe
         printf("ctrl[3-5] (轮速): %.2f, %.2f, %.2f rad/s\n",
                data_->ctrl[3], data_->ctrl[4], data_->ctrl[5]);
 
-        // 显示实际关节速度
-        printf("实际轮速: %.2f, %.2f, %.2f rad/s\n",
-               data_->qvel[6], data_->qvel[7], data_->qvel[8]);
+        // 打印所有关节速度以找出正确的索引
+        printf("\n所有关节速度 (qvel):\n");
+        for (int i = 0; i < model_->nv; i++) {
+            printf("  qvel[%d] = %.2f", i, data_->qvel[i]);
+            // 尝试获取关节名称
+            if (i < model_->njnt) {
+                int jnt_qposadr = model_->jnt_qposadr[i];
+                int jnt_dofadr = model_->jnt_dofadr[i];
+                if (jnt_dofadr == i) {
+                    const char* jnt_name = mj_id2name(model_, mjOBJ_JOINT, i);
+                    if (jnt_name) {
+                        printf(" (%s)", jnt_name);
+                    }
+                }
+            }
+            printf("\n");
+        }
+
+        // 显示正确的轮速索引
+        printf("\n实际轮速: %.2f, %.2f, %.2f rad/s\n",
+               data_->qvel[4], data_->qvel[6], data_->qvel[8]);
+        printf("底盘速度: vx=%.3f, vy=%.3f, vyaw=%.3f\n",
+               data_->qvel[0], data_->qvel[1], data_->qvel[2]);
         printf("\n");
     }
 }
