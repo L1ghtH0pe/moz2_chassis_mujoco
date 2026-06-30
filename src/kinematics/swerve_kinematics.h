@@ -33,8 +33,11 @@ private:
     // 轮半径
     double wheel_radius_;
 
-    // 上一次的舵角（用于低速时保持）
+    // 上一次的舵角目标（用于低速时保持和方向一致性）
     double last_steer_angles_[3];
+
+    // 上一次是否使用了反向方案（用于保持方向一致性）
+    bool last_use_reverse_[3];
 };
 
 }  // namespace swerve_chassis

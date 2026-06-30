@@ -21,19 +21,32 @@
         <light directional="true" ambient=".3 .3 .3" pos="30 30 30" dir="0 -2 -1" diffuse=".5 .5 .5" specular=".5 .5 .5" />
 
         
-        <body name="base" pos="0.0 0.0 0.17" euler="0 0 0">
+        <body name="base" pos="0.0 0.0 0.175" euler="0 0 0">
             <joint name="base_x" type="slide" axis="1 0 0" damping="0" frictionloss="0" armature="0" />
             <joint name="base_y" type="slide" axis="0 1 0" damping="0" frictionloss="0" armature="0" />
             <joint name="base_yaw" type="hinge" axis="0 0 1" damping="0" frictionloss="0" armature="0" />
             <geom type="box" size="0.2 0.2 0.01" pos="0.0 0.0 0.0" mass="32" condim="3" contype="1" conaffinity="65535" group="1" rgba="0.2 0.2 0.0 1" />
+
+            <!-- 底盘坐标系：X轴红色，Y轴绿色，Z轴蓝色 -->
+            <geom type="cylinder" size="0.005 0.15" pos="0.15 0 0.02" euler="0 1.5708 0" rgba="1 0 0 1" contype="0" conaffinity="0" group="0" />
+            <geom type="cylinder" size="0.005 0.15" pos="0 0.15 0.02" euler="1.5708 0 0" rgba="0 1 0 1" contype="0" conaffinity="0" group="0" />
+            <geom type="cylinder" size="0.005 0.15" pos="0 0 0.17" euler="0 0 0" rgba="0 0 1 1" contype="0" conaffinity="0" group="0" />
+
             <body name="base_s1" pos="0.19 -0.19 -0.012" euler="0 0 1.5708">
                 <inertial pos="-0.0373 0.0 -0.0404" mass="0.3126" fullinertia="3.69e-4 4.40e-4 2.08e-4 0.0 1.20e-4 0.0" />
                 <joint name="j_base_s1" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005" frictionloss="0" />
                 <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
 
+                <!-- 轮1方向指示箭头（红色=前方） -->
+                <geom type="box" size="0.08 0.01 0.005" pos="0.08 0 -0.05" euler="0 0 0" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 0.015 -0.05" euler="0 0 -0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 -0.015 -0.05" euler="0 0 0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+
                 <body name="base_r1" pos="0 0 -0.088">
                     <joint name="j_base_r1" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
                     <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="1" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
+                    <!-- 轮子侧面标记（白色） -->
+                    <geom type="box" size="0.06 0.01 0.01" pos="0 0.085 0" euler="0 1.5708 0" rgba="1 1 1 1" contype="0" conaffinity="0" group="0" />
                 </body>
             </body>
             <body name="base_s2" pos="0.19 0.19 -0.012" euler="0 0 1.5708">
@@ -41,9 +54,16 @@
                 <joint name="j_base_s2" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005" frictionloss="0" />
                 <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
 
+                <!-- 轮2方向指示箭头（红色=前方） -->
+                <geom type="box" size="0.08 0.01 0.005" pos="0.08 0 -0.05" euler="0 0 0" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 0.015 -0.05" euler="0 0 -0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 -0.015 -0.05" euler="0 0 0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+
                 <body name="base_r2" pos="0 0 -0.088">
                     <joint name="j_base_r2" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
                     <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="1" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
+                    <!-- 轮子侧面标记（白色） -->
+                    <geom type="box" size="0.06 0.01 0.01" pos="0 0.085 0" euler="0 1.5708 0" rgba="1 1 1 1" contype="0" conaffinity="0" group="0" />
                 </body>
             </body>
             <body name="base_s3" pos="-0.19 0 -0.012" euler="0 0 1.5708">
@@ -51,9 +71,16 @@
                 <joint name="j_base_s3" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005" frictionloss="0" />
                 <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
 
+                <!-- 轮3方向指示箭头（红色=前方） -->
+                <geom type="box" size="0.08 0.01 0.005" pos="0.08 0 -0.05" euler="0 0 0" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 0.015 -0.05" euler="0 0 -0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+                <geom type="box" size="0.02 0.015 0.005" pos="0.16 -0.015 -0.05" euler="0 0 0.785" rgba="1 0.5 0 1" contype="0" conaffinity="0" group="0" />
+
                 <body name="base_r3" pos="0 0 -0.088">
                     <joint name="j_base_r3" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
                     <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="1" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
+                    <!-- 轮子侧面标记（白色） -->
+                    <geom type="box" size="0.06 0.01 0.01" pos="0 0.085 0" euler="0 1.5708 0" rgba="1 1 1 1" contype="0" conaffinity="0" group="0" />
                 </body>
             </body>
         </body>
