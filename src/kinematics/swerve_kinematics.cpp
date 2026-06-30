@@ -1,6 +1,10 @@
 #include "swerve_kinematics.h"
 #include <cmath>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace swerve_chassis {
 
 SwerveKinematics::SwerveKinematics()
@@ -41,16 +45,26 @@ void SwerveKinematics::inverseKinematics(
 
         // 计算舵角和轮速
         if (vi_magnitude > LOW_SPEED_THRESHOLD) {
-            // 正常速度：计算新的舵角
+            // 正常速度：计算新的舵角和轮速
             wheels[i].steer_angle = std::atan2(viy, vix);
+            wheels[i].wheel_speed = vi_magnitude / wheel_radius_;
+
+            // 舵角优化：如果新舵角与旧舵角相差约180°，保持舵角，轮速反向
+            double angle_diff = wheels[i].steer_angle - last_steer_angles_[i];
+            while (angle_diff > M_PI) angle_diff -= 2 * M_PI;
+            while (angle_diff < -M_PI) angle_diff += 2 * M_PI;
+
+            if (std::abs(std::abs(angle_diff) - M_PI) < 0.1) {
+                wheels[i].steer_angle = last_steer_angles_[i];
+                wheels[i].wheel_speed = -wheels[i].wheel_speed;
+            }
+
             last_steer_angles_[i] = wheels[i].steer_angle;
         } else {
             // 低速：保持上一次的舵角
             wheels[i].steer_angle = last_steer_angles_[i];
+            wheels[i].wheel_speed = vi_magnitude / wheel_radius_;
         }
-
-        // 计算轮速 (rad/s) = 线速度 / 轮半径
-        wheels[i].wheel_speed = vi_magnitude / wheel_radius_;
 
         // 限幅保护
         const double MAX_WHEEL_SPEED = 100.0;  // rad/s
