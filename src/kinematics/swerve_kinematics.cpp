@@ -61,17 +61,14 @@ void SwerveKinematics::inverseKinematics(
             // 舵角优化：比较两种方案，选择舵角变化更小的
             // 方案1：直接使用新舵角
             double angle_diff1 = new_angle - current_angle;
+            // 归一化到 [-π, π]
             while (angle_diff1 > M_PI) angle_diff1 -= 2 * M_PI;
             while (angle_diff1 < -M_PI) angle_diff1 += 2 * M_PI;
             double cost1 = std::abs(angle_diff1);
 
-            // 方案2：舵角反向（+180°），轮速取反
-            double reverse_angle = new_angle + M_PI;
-            if (reverse_angle > M_PI) reverse_angle -= 2 * M_PI;
-            if (reverse_angle < -M_PI) reverse_angle += 2 * M_PI;
-            double angle_diff2 = reverse_angle - current_angle;
-            while (angle_diff2 > M_PI) angle_diff2 -= 2 * M_PI;
-            while (angle_diff2 < -M_PI) angle_diff2 += 2 * M_PI;
+            // 方案2：舵角+180°，轮速取反
+            // 关键：直接从angle_diff1计算，避免重复归一化导致的边界错误
+            double angle_diff2 = angle_diff1 > 0 ? (angle_diff1 - M_PI) : (angle_diff1 + M_PI);
             double cost2 = std::abs(angle_diff2);
 
             // 调试输出（每50次打印一次，且仅当有显著角度变化时）
@@ -85,26 +82,32 @@ void SwerveKinematics::inverseKinematics(
                        cost2 * 180.0 / M_PI);
             }
 
-            // 选择舵角变化更小的方案
+            // 选择代价更小的方案
+            double final_angle, final_speed;
             if (cost2 < cost1) {
                 // 方案2更优：使用反向舵角和反向轮速
-                wheels[i].steer_angle = reverse_angle;
-                wheels[i].wheel_speed = -new_speed;
+                final_angle = current_angle + angle_diff2;
+                // 归一化到 [-π, π]
+                while (final_angle > M_PI) final_angle -= 2 * M_PI;
+                while (final_angle < -M_PI) final_angle += 2 * M_PI;
+                final_speed = -new_speed;
 
                 if (debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
-                    printf(" -> 选方案2(目标 %.2f° 轮速反向)\n", reverse_angle * 180.0 / M_PI);
+                    printf(" -> 选方案2(目标 %.2f° 轮速反向)\n", final_angle * 180.0 / M_PI);
                 }
             } else {
                 // 方案1更优：直接使用新舵角和轮速
-                wheels[i].steer_angle = new_angle;
-                wheels[i].wheel_speed = new_speed;
+                final_angle = new_angle;
+                final_speed = new_speed;
 
                 if (debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
-                    printf(" -> 选方案1(目标 %.2f° 轮速正向)\n", new_angle * 180.0 / M_PI);
+                    printf(" -> 选方案1(目标 %.2f° 轮速正向)\n", final_angle * 180.0 / M_PI);
                 }
             }
 
-            last_steer_angles_[i] = wheels[i].steer_angle;
+            wheels[i].steer_angle = final_angle;
+            wheels[i].wheel_speed = final_speed;
+            last_steer_angles_[i] = final_angle;
         } else {
             // 低速：保持上一次的舵角
             wheels[i].steer_angle = last_steer_angles_[i];
