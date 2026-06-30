@@ -1,0 +1,71 @@
+<mujoco model="humaniod">
+    <compiler angle="radian" autolimits="true" eulerseq="xyz" meshdir="meshes"/>
+    <option timestep="0.002" iterations="100" integrator="implicitfast" density="0" viscosity="0" />
+
+    <visual>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <global azimuth="150" elevation="-20"/>
+    </visual>
+
+    <asset>
+    	<texture name="plane" type="2d" builtin="checker" rgb1=".1 .1 .1" rgb2=".9 .9 .9" width="512" height="512" />
+        <material name="plane" texture="plane" reflectance="0.3" texrepeat="1 1" texuniform="true" />
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+        
+        <mesh name="steering" content_type="model/stl" file="RFW_RAW.STL" />
+    </asset>
+
+    <worldbody>
+    	<geom name="floor" pos="0 0 0" size="10 10 0.1" type="plane" material="plane" condim="3" contype="1" conaffinity="65535" />
+        <light directional="true" ambient=".3 .3 .3" pos="30 30 30" dir="0 -2 -1" diffuse=".5 .5 .5" specular=".5 .5 .5" />
+
+        
+        <body name="base" pos="0.0 0.0 0.176" euler="0 0 0">
+            <joint name="base_x" type="slide" axis="1 0 0" />
+            <joint name="base_y" type="slide" axis="0 1 0" />
+            <joint name="base_yaw" type="hinge" axis="0 0 1" />
+            <geom type="box" size="0.2 0.2 0.01" pos="0.0 0.0 0.0" mass="32" condim="3" contype="2" conaffinity="65535" group="1" rgba="0.2 0.2 0.0 1" />
+            <body name="base_s1" pos="0.19 -0.19 -0.012" euler="0 0 1.5708">
+                <inertial pos="-0.0373 0.0 -0.0404" mass="0.3126" fullinertia="3.69e-4 4.40e-4 2.08e-4 0.0 1.20e-4 0.0" />
+                <joint name="j_base_s1" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005 0 0" frictionloss="0" />
+                <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
+
+                <body name="base_r1" pos="0 0 -0.088">
+                    <joint name="j_base_r1" type="hinge" axis="1 0 0" armature="0" damping="0.005 0 0" frictionloss="0" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                </body>
+            </body>
+            <body name="base_s2" pos="0.19 0.19 -0.012" euler="0 0 1.5708">
+                <inertial pos="-0.0373 0.0 -0.0404" mass="0.3126" fullinertia="3.69e-4 4.40e-4 2.08e-4 0.0 1.20e-4 0.0" />
+                <joint name="j_base_s2" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005 0 0" frictionloss="0" />
+                <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
+
+                <body name="base_r2" pos="0 0 -0.088">
+                    <joint name="j_base_r2" type="hinge" axis="1 0 0" armature="0" damping="0.005 0 0" frictionloss="0" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                </body>
+            </body>
+            <body name="base_s3" pos="-0.19 0 -0.012" euler="0 0 1.5708">
+                <inertial pos="-0.0373 0.0 -0.0404" mass="0.3126" fullinertia="3.69e-4 4.40e-4 2.08e-4 0.0 1.20e-4 0.0" />
+                <joint name="j_base_s3" type="hinge" axis="0 0 1" range="-3.14 3.14" armature="0" damping="0.005 0 0" frictionloss="0" />
+                <geom type="mesh" mesh="steering" pos="0.0 0.0 0.0" condim="3" contype="0" conaffinity="0" group="1" />
+
+                <body name="base_r3" pos="0 0 -0.088">
+                    <joint name="j_base_r3" type="hinge" axis="1 0 0" armature="0" damping="0.005 0 0" frictionloss="0" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <position name="base_s1" joint="j_base_s1" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
+        <position name="base_s2" joint="j_base_s2" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
+        <position name="base_s3" joint="j_base_s3" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
+        <velocity name="base_r1" joint="j_base_r1" kv="20" ctrlrange="-10 10" />
+        <velocity name="base_r2" joint="j_base_r2" kv="20" ctrlrange="-10 10" />
+        <velocity name="base_r3" joint="j_base_r3" kv="20" ctrlrange="-10 10" />
+    </actuator>
+
+</mujoco>
