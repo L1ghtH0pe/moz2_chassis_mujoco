@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
         std::cout << "仿真器初始化成功" << std::endl;
 
         // 创建键盘输入
-        KeyboardInput keyboard_input(simulator.getWindow(), 1.0, 1.0, 0.5);
+        KeyboardInput keyboard_input(simulator.getWindow(), 2.0, 2.0, 1.0);
 
         // 创建舵轮运动学求解器
         swerve_chassis::SwerveKinematics kinematics;
