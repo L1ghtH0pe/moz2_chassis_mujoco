@@ -1,5 +1,5 @@
 #include "control/keyboard_input.h"
-#include "control/mecanum_controller.h"
+#include "kinematics/swerve_kinematics.h"
 #include "simulation/mujoco_simulator.h"
 #include <iostream>
 #include <memory>
@@ -28,9 +28,8 @@ int main(int argc, char** argv) {
         // 创建键盘输入
         KeyboardInput keyboard_input(simulator.getWindow(), 1.0, 1.0, 0.5);
 
-        // 创建麦克纳姆轮控制器
-        // 参数：轮距、轴距、轮半径
-        MecanumController controller(0.4, 0.5, 0.076);
+        // 创建舵轮运动学求解器
+        swerve_chassis::SwerveKinematics kinematics;
 
         std::cout << "控制提示:" << std::endl;
         std::cout << "  W/S: 前进/后退" << std::endl;
@@ -52,10 +51,20 @@ int main(int argc, char** argv) {
             keyboard_input.update();
             Eigen::Vector3d vel_cmd = keyboard_input.getVelocityCommand();
 
-            // 逆运动学：底盘速度 -> 轮子速度
-            Eigen::Vector4d wheel_vels = controller.computeWheelVelocities(vel_cmd);
+            // 逆运动学：底盘速度 -> 轮子指令
+            swerve_chassis::WheelCommand wheel_cmds[3];
+            kinematics.inverseKinematics(vel_cmd(0), vel_cmd(1), vel_cmd(2), wheel_cmds);
 
-            // 设置仿真器执行器
+            // TODO: 将舵轮指令发送到仿真器
+            // 注意：当前 setWheelVelocities 接受 4 个轮速
+            // 需要根据实际模型调整执行器映射
+
+            // 临时方案：仅使用轮速（忽略舵角控制）
+            Eigen::Vector4d wheel_vels;
+            wheel_vels << wheel_cmds[0].wheel_speed,
+                          wheel_cmds[1].wheel_speed,
+                          wheel_cmds[2].wheel_speed,
+                          0.0;  // 第4个轮子占位
             simulator.setWheelVelocities(wheel_vels);
 
             // 执行仿真步进

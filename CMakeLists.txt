@@ -6,11 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 查找 MuJoCo（手动方式）
 find_path(MUJOCO_INCLUDE_DIR mujoco/mujoco.h
-    PATHS /usr/local/mujoco/include /usr/include
+    PATHS /home/mxz/mujoco/include /usr/local/mujoco/include /usr/include
     REQUIRED
 )
 find_library(MUJOCO_LIBRARY mujoco
-    PATHS /usr/local/mujoco/lib /usr/lib
+    PATHS /home/mxz/mujoco/build/lib /usr/local/mujoco/lib /usr/lib
     REQUIRED
 )
 
@@ -19,6 +19,9 @@ find_package(glfw3 REQUIRED)
 
 # 查找 OpenGL
 find_package(OpenGL REQUIRED)
+
+# 查找 Eigen3
+find_package(Eigen3 REQUIRED)
 
 # 源文件
 set(SOURCES
@@ -43,6 +46,7 @@ target_link_libraries(swerve_sim
 target_include_directories(swerve_sim PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${MUJOCO_INCLUDE_DIR}
+    ${EIGEN3_INCLUDE_DIR}
 )
 
 # 编译选项
