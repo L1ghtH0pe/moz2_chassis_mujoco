@@ -88,18 +88,19 @@ bool MuJoCoSimulator::initialize() {
     return true;
 }
 
-void MuJoCoSimulator::setWheelVelocities(const Eigen::Vector4d& wheel_velocities) {
+void MuJoCoSimulator::setActuatorCommands(const swerve_chassis::WheelCommand wheels[3]) {
     if (!model_ || !data_) return;
 
-    // 查找执行器索引（假设执行器名称为 wheel_fl, wheel_fr, wheel_rl, wheel_rr）
-    const char* actuator_names[] = {"wheel_fl", "wheel_fr", "wheel_rl", "wheel_rr"};
+    // 设置舵电机角度（ctrl[0-2]）
+    // 假设执行器顺序：base_s1, base_s2, base_s3, base_r1, base_r2, base_r3
+    data_->ctrl[0] = wheels[0].steer_angle;
+    data_->ctrl[1] = wheels[1].steer_angle;
+    data_->ctrl[2] = wheels[2].steer_angle;
 
-    for (int i = 0; i < 4; ++i) {
-        int actuator_id = mj_name2id(model_, mjOBJ_ACTUATOR, actuator_names[i]);
-        if (actuator_id >= 0) {
-            data_->ctrl[actuator_id] = wheel_velocities(i);
-        }
-    }
+    // 设置轮电机速度（ctrl[3-5]）
+    data_->ctrl[3] = wheels[0].wheel_speed;
+    data_->ctrl[4] = wheels[1].wheel_speed;
+    data_->ctrl[5] = wheels[2].wheel_speed;
 }
 
 void MuJoCoSimulator::step() {

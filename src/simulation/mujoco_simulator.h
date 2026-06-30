@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <string>
 #include <memory>
+#include "../kinematics/swerve_kinematics.h"
 
 /**
  * @brief MuJoCo 仿真器封装
@@ -41,10 +42,10 @@ public:
     bool initialize();
 
     /**
-     * @brief 设置轮子速度（rad/s）
-     * @param wheel_velocities 4 个轮子的目标速度 [fl, fr, rl, rr]
+     * @brief 设置执行器指令（舵角 + 轮速）
+     * @param wheels 3 个舵轮的指令（舵角 rad，轮速 rad/s）
      */
-    void setWheelVelocities(const Eigen::Vector4d& wheel_velocities);
+    void setActuatorCommands(const swerve_chassis::WheelCommand wheels[3]);
 
     /**
      * @brief 执行一步仿真

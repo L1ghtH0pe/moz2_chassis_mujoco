@@ -55,17 +55,8 @@ int main(int argc, char** argv) {
             swerve_chassis::WheelCommand wheel_cmds[3];
             kinematics.inverseKinematics(vel_cmd(0), vel_cmd(1), vel_cmd(2), wheel_cmds);
 
-            // TODO: 将舵轮指令发送到仿真器
-            // 注意：当前 setWheelVelocities 接受 4 个轮速
-            // 需要根据实际模型调整执行器映射
-
-            // 临时方案：仅使用轮速（忽略舵角控制）
-            Eigen::Vector4d wheel_vels;
-            wheel_vels << wheel_cmds[0].wheel_speed,
-                          wheel_cmds[1].wheel_speed,
-                          wheel_cmds[2].wheel_speed,
-                          0.0;  // 第4个轮子占位
-            simulator.setWheelVelocities(wheel_vels);
+            // 设置执行器指令（舵角 + 轮速）
+            simulator.setActuatorCommands(wheel_cmds);
 
             // 执行仿真步进
             simulator.step();
