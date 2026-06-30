@@ -33,7 +33,7 @@
 
                 <body name="base_r1" pos="0 0 -0.088">
                     <joint name="j_base_r1" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
-                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
                 </body>
             </body>
             <body name="base_s2" pos="0.19 0.19 -0.012" euler="0 0 1.5708">
@@ -43,7 +43,7 @@
 
                 <body name="base_r2" pos="0 0 -0.088">
                     <joint name="j_base_r2" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
-                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
                 </body>
             </body>
             <body name="base_s3" pos="-0.19 0 -0.012" euler="0 0 1.5708">
@@ -53,7 +53,7 @@
 
                 <body name="base_r3" pos="0 0 -0.088">
                     <joint name="j_base_r3" type="hinge" axis="1 0 0" armature="0" damping="0.005" frictionloss="0" />
-                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" />
+                    <geom type="cylinder" size="0.075 0.02" pos="0 0 0" euler="0 1.5708 0" mass="4.11" condim="6" contype="2" conaffinity="65535" group="1" friction="1.0 0.005 0.0001" />
                 </body>
             </body>
         </body>
@@ -63,9 +63,9 @@
         <position name="base_s1" joint="j_base_s1" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
         <position name="base_s2" joint="j_base_s2" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
         <position name="base_s3" joint="j_base_s3" kp="2500" kv="100" ctrlrange="-3.14 3.14" />
-        <velocity name="base_r1" joint="j_base_r1" kv="20" ctrlrange="-100 100" />
-        <velocity name="base_r2" joint="j_base_r2" kv="20" ctrlrange="-100 100" />
-        <velocity name="base_r3" joint="j_base_r3" kv="20" ctrlrange="-100 100" />
+        <velocity name="base_r1" joint="j_base_r1" kv="50" ctrlrange="-100 100" />
+        <velocity name="base_r2" joint="j_base_r2" kv="50" ctrlrange="-100 100" />
+        <velocity name="base_r3" joint="j_base_r3" kv="50" ctrlrange="-100 100" />
     </actuator>
 
 </mujoco>
