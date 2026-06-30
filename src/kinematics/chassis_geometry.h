@@ -11,7 +11,7 @@ struct ChassisGeometry {
         double y;
     };
 
-    static constexpr WheelPosition WHEEL_POSITIONS[3] = {
+    static inline constexpr WheelPosition WHEEL_POSITIONS[3] = {
         {0.19, -0.19},  // 轮1: 右前
         {0.19,  0.19},  // 轮2: 左前
         {-0.19, 0.0}    // 轮3: 后中
