@@ -47,17 +47,34 @@ void SwerveKinematics::inverseKinematics(
         // 计算舵角和轮速
         if (vi_magnitude > LOW_SPEED_THRESHOLD) {
             // 正常速度：计算新的舵角和轮速
-            wheels[i].steer_angle = std::atan2(viy, vix);
-            wheels[i].wheel_speed = vi_magnitude / wheel_radius_;
+            double new_angle = std::atan2(viy, vix);
+            double new_speed = vi_magnitude / wheel_radius_;
 
-            // 舵角优化：如果新舵角与旧舵角相差约180°，保持舵角，轮速反向
-            double angle_diff = wheels[i].steer_angle - last_steer_angles_[i];
-            while (angle_diff > M_PI) angle_diff -= 2 * M_PI;
-            while (angle_diff < -M_PI) angle_diff += 2 * M_PI;
+            // 舵角优化：比较两种方案，选择舵角变化更小的
+            // 方案1：直接使用新舵角
+            double angle_diff1 = new_angle - last_steer_angles_[i];
+            while (angle_diff1 > M_PI) angle_diff1 -= 2 * M_PI;
+            while (angle_diff1 < -M_PI) angle_diff1 += 2 * M_PI;
+            double cost1 = std::abs(angle_diff1);
 
-            if (std::abs(std::abs(angle_diff) - M_PI) < 0.1) {
-                wheels[i].steer_angle = last_steer_angles_[i];
-                wheels[i].wheel_speed = -wheels[i].wheel_speed;
+            // 方案2：舵角反向（+180°），轮速取反
+            double reverse_angle = new_angle + M_PI;
+            if (reverse_angle > M_PI) reverse_angle -= 2 * M_PI;
+            if (reverse_angle < -M_PI) reverse_angle += 2 * M_PI;
+            double angle_diff2 = reverse_angle - last_steer_angles_[i];
+            while (angle_diff2 > M_PI) angle_diff2 -= 2 * M_PI;
+            while (angle_diff2 < -M_PI) angle_diff2 += 2 * M_PI;
+            double cost2 = std::abs(angle_diff2);
+
+            // 选择舵角变化更小的方案
+            if (cost2 < cost1) {
+                // 方案2更优：使用反向舵角和反向轮速
+                wheels[i].steer_angle = reverse_angle;
+                wheels[i].wheel_speed = -new_speed;
+            } else {
+                // 方案1更优：直接使用新舵角和轮速
+                wheels[i].steer_angle = new_angle;
+                wheels[i].wheel_speed = new_speed;
             }
 
             last_steer_angles_[i] = wheels[i].steer_angle;
