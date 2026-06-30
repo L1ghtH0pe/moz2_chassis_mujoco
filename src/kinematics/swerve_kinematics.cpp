@@ -71,15 +71,34 @@ void SwerveKinematics::inverseKinematics(
             while (angle_diff2 < -M_PI) angle_diff2 += 2 * M_PI;
             double cost2 = std::abs(angle_diff2);
 
+            // 调试输出（每50次打印一次，且仅当有显著角度变化时）
+            static int debug_counter = 0;
+            if (++debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
+                printf("[轮%d舵角优化] 旧=%.2f° 新=%.2f° | 方案1(直接):%.1f° 方案2(反向):%.1f°",
+                       i+1,
+                       last_angle_normalized * 180.0 / M_PI,
+                       new_angle * 180.0 / M_PI,
+                       cost1 * 180.0 / M_PI,
+                       cost2 * 180.0 / M_PI);
+            }
+
             // 选择舵角变化更小的方案
             if (cost2 < cost1) {
                 // 方案2更优：使用反向舵角和反向轮速
                 wheels[i].steer_angle = reverse_angle;
                 wheels[i].wheel_speed = -new_speed;
+
+                if (debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
+                    printf(" -> 选方案2(反向 %.2f°)\n", reverse_angle * 180.0 / M_PI);
+                }
             } else {
                 // 方案1更优：直接使用新舵角和轮速
                 wheels[i].steer_angle = new_angle;
                 wheels[i].wheel_speed = new_speed;
+
+                if (debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
+                    printf(" -> 选方案1(直接 %.2f°)\n", new_angle * 180.0 / M_PI);
+                }
             }
 
             last_steer_angles_[i] = wheels[i].steer_angle;
