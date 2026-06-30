@@ -60,12 +60,12 @@
     </worldbody>
 
     <actuator>
-        <position name="base_s1" joint="j_base_s1" kp="1200" kv="60" ctrlrange="-3.14 3.14" />
-        <position name="base_s2" joint="j_base_s2" kp="1200" kv="60" ctrlrange="-3.14 3.14" />
-        <position name="base_s3" joint="j_base_s3" kp="1200" kv="60" ctrlrange="-3.14 3.14" />
-        <velocity name="base_r1" joint="j_base_r1" kv="1.0" ctrlrange="-100 100" forcerange="-50 50" />
-        <velocity name="base_r2" joint="j_base_r2" kv="1.0" ctrlrange="-100 100" forcerange="-50 50" />
-        <velocity name="base_r3" joint="j_base_r3" kv="1.0" ctrlrange="-100 100" forcerange="-50 50" />
+        <position name="base_s1" joint="j_base_s1" kp="1800" kv="80" ctrlrange="-3.14 3.14" />
+        <position name="base_s2" joint="j_base_s2" kp="1800" kv="80" ctrlrange="-3.14 3.14" />
+        <position name="base_s3" joint="j_base_s3" kp="1800" kv="80" ctrlrange="-3.14 3.14" />
+        <velocity name="base_r1" joint="j_base_r1" kv="0.1" ctrlrange="-100 100" forcerange="-50 50" />
+        <velocity name="base_r2" joint="j_base_r2" kv="0.1" ctrlrange="-100 100" forcerange="-50 50" />
+        <velocity name="base_r3" joint="j_base_r3" kv="0.1" ctrlrange="-100 100" forcerange="-50 50" />
     </actuator>
 
 </mujoco>

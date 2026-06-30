@@ -103,7 +103,7 @@ void MuJoCoSimulator::setActuatorCommands(const swerve_chassis::WheelCommand whe
         adjusted_wheels[i] = wheels[i];
     }
 
-    const double STEER_ERROR_THRESHOLD = 0.1;  // 5.7度，舵角误差阈值
+    const double STEER_ERROR_THRESHOLD = 0.26;  // 15度，舵角误差阈值（放宽）
     for (int i = 0; i < 3; i++) {
         // 计算舵角误差（当前舵角 vs 目标舵角）
         double current_steer = data_->qpos[3 + i*2];  // qpos[3]=s1, qpos[5]=s2, qpos[7]=s3
@@ -114,14 +114,15 @@ void MuJoCoSimulator::setActuatorCommands(const swerve_chassis::WheelCommand whe
         while (steer_error > M_PI) steer_error -= 2 * M_PI;
         while (steer_error < -M_PI) steer_error += 2 * M_PI;
 
-        // 根据舵角误差调整轮速
+        // 根据舵角误差调整轮速（更平滑的过渡）
         double wheel_speed_scale = 1.0;
-        if (std::abs(steer_error) > STEER_ERROR_THRESHOLD) {
-            // 舵角未到位，轮速按比例降低
-            // 误差 > 0.1 rad 时，轮速为 0
-            // 误差 < 0.05 rad 时，轮速为 100%
-            // 线性插值
-            wheel_speed_scale = std::max(0.0, 1.0 - (std::abs(steer_error) - 0.05) / 0.05);
+        double abs_error = std::abs(steer_error);
+        if (abs_error > STEER_ERROR_THRESHOLD) {
+            // 误差 > 15° 时，轮速为 20%（不是0，保持低速）
+            wheel_speed_scale = 0.2;
+        } else {
+            // 误差 0-15° 之间，从 20% 线性增长到 100%
+            wheel_speed_scale = 0.2 + 0.8 * (1.0 - abs_error / STEER_ERROR_THRESHOLD);
         }
 
         adjusted_wheels[i].wheel_speed *= wheel_speed_scale;
