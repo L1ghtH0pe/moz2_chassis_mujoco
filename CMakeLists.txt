@@ -4,8 +4,15 @@ project(swerve_chassis_sim)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 查找 MuJoCo
-find_package(mujoco REQUIRED)
+# 查找 MuJoCo（手动方式）
+find_path(MUJOCO_INCLUDE_DIR mujoco/mujoco.h
+    PATHS /usr/local/mujoco/include /usr/include
+    REQUIRED
+)
+find_library(MUJOCO_LIBRARY mujoco
+    PATHS /usr/local/mujoco/lib /usr/lib
+    REQUIRED
+)
 
 # 查找 GLFW3
 find_package(glfw3 REQUIRED)
@@ -27,7 +34,7 @@ add_executable(swerve_sim ${SOURCES})
 
 # 链接库
 target_link_libraries(swerve_sim
-    mujoco::mujoco
+    ${MUJOCO_LIBRARY}
     glfw
     ${OPENGL_LIBRARIES}
 )
@@ -35,6 +42,7 @@ target_link_libraries(swerve_sim
 # 包含目录
 target_include_directories(swerve_sim PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${MUJOCO_INCLUDE_DIR}
 )
 
 # 编译选项
