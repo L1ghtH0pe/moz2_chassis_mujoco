@@ -67,11 +67,19 @@ void SwerveKinematics::inverseKinematics(
             double cost1 = std::abs(angle_diff1);
 
             // 方案2：舵角+180°，轮速取反
-            // 关键：直接从angle_diff1计算，避免重复归一化导致的边界错误
-            double angle_diff2 = angle_diff1 > 0 ? (angle_diff1 - M_PI) : (angle_diff1 + M_PI);
+            // 直接计算反向目标角度
+            double reverse_target = new_angle + M_PI;
+            // 归一化到 [-π, π]
+            while (reverse_target > M_PI) reverse_target -= 2 * M_PI;
+            while (reverse_target < -M_PI) reverse_target += 2 * M_PI;
+
+            double angle_diff2 = reverse_target - current_angle;
+            // 归一化到 [-π, π]
+            while (angle_diff2 > M_PI) angle_diff2 -= 2 * M_PI;
+            while (angle_diff2 < -M_PI) angle_diff2 += 2 * M_PI;
             double cost2 = std::abs(angle_diff2);
 
-            // 调试输出（每50次打印一次，且仅当有显著角度变化时）
+            // 调试输出
             static int debug_counter = 0;
             if (++debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
                 printf("[轮%d舵角优化] 当前=%.2f° 新目标=%.2f° | 方案1代价:%.1f° 方案2代价:%.1f°",
@@ -86,10 +94,7 @@ void SwerveKinematics::inverseKinematics(
             double final_angle, final_speed;
             if (cost2 < cost1) {
                 // 方案2更优：使用反向舵角和反向轮速
-                final_angle = current_angle + angle_diff2;
-                // 归一化到 [-π, π]
-                while (final_angle > M_PI) final_angle -= 2 * M_PI;
-                while (final_angle < -M_PI) final_angle += 2 * M_PI;
+                final_angle = reverse_target;  // 关键修复：直接使用reverse_target
                 final_speed = -new_speed;
 
                 if (debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
