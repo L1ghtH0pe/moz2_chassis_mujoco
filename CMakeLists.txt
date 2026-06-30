@@ -23,6 +23,9 @@ find_package(OpenGL REQUIRED)
 # 查找 Eigen3
 find_package(Eigen3 REQUIRED)
 
+# VIO SDK路径
+set(VIO_SDK_PATH "/home/mxz/桌面/Ubuntu20.04/x86_64")
+
 # 源文件
 set(SOURCES
     src/main.cpp
@@ -30,6 +33,7 @@ set(SOURCES
     src/control/keyboard_input.cpp
     src/control/vio_input.cpp
     src/simulation/mujoco_simulator.cpp
+    src/vio/vio_device.cpp
 )
 
 # 可执行文件
@@ -40,6 +44,8 @@ target_link_libraries(swerve_sim
     ${MUJOCO_LIBRARY}
     glfw
     ${OPENGL_LIBRARIES}
+    ${VIO_SDK_PATH}/lib/libcarina_vio.so
+    pthread
 )
 
 # 包含目录
@@ -47,6 +53,13 @@ target_include_directories(swerve_sim PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${MUJOCO_INCLUDE_DIR}
     ${EIGEN3_INCLUDE_DIR}
+    ${VIO_SDK_PATH}/include
+)
+
+# 设置RPATH，确保运行时能找到VIO库
+set_target_properties(swerve_sim PROPERTIES
+    INSTALL_RPATH "${VIO_SDK_PATH}/lib"
+    BUILD_WITH_INSTALL_RPATH TRUE
 )
 
 # 编译选项
