@@ -247,6 +247,18 @@ Eigen::Matrix<double, 6, 1> MuJoCoSimulator::getChassisVelocity() const {
     return velocity;
 }
 
+void MuJoCoSimulator::getCurrentSteerAngles(double steer_angles[3]) const {
+    if (!model_ || !data_) {
+        steer_angles[0] = steer_angles[1] = steer_angles[2] = 0.0;
+        return;
+    }
+
+    // 读取当前实际舵角：qpos[3]=s1, qpos[5]=s2, qpos[7]=s3
+    steer_angles[0] = data_->qpos[3];
+    steer_angles[1] = data_->qpos[5];
+    steer_angles[2] = data_->qpos[7];
+}
+
 void MuJoCoSimulator::mouseButtonCallback(GLFWwindow* window, int button, int act, int mods) {
     MuJoCoSimulator* sim = static_cast<MuJoCoSimulator*>(glfwGetWindowUserPointer(window));
     if (!sim) return;

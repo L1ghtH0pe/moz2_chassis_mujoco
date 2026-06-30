@@ -19,9 +19,11 @@ public:
     // 逆运动学：底盘速度 -> 轮子指令
     // 输入：vx, vy (m/s, 机体坐标系), wz (rad/s)
     // 输出：wheels[3] 包含每个轮子的舵角和轮速
+    // current_steer_angles: 当前实际舵角（从qpos读取），用于舵角优化
     void inverseKinematics(
         double vx, double vy, double wz,
-        WheelCommand wheels[3]
+        WheelCommand wheels[3],
+        const double* current_steer_angles = nullptr
     );
 
 private:

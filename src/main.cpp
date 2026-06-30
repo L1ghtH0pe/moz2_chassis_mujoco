@@ -51,9 +51,13 @@ int main(int argc, char** argv) {
             keyboard_input.update();
             Eigen::Vector3d vel_cmd = keyboard_input.getVelocityCommand();
 
+            // 获取当前实际舵角
+            double current_steer_angles[3];
+            simulator.getCurrentSteerAngles(current_steer_angles);
+
             // 逆运动学：底盘速度 -> 轮子指令
             swerve_chassis::WheelCommand wheel_cmds[3];
-            kinematics.inverseKinematics(vel_cmd(0), vel_cmd(1), vel_cmd(2), wheel_cmds);
+            kinematics.inverseKinematics(vel_cmd(0), vel_cmd(1), vel_cmd(2), wheel_cmds, current_steer_angles);
 
             // 设置执行器指令（舵角 + 轮速）
             simulator.setActuatorCommands(wheel_cmds);

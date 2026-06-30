@@ -79,6 +79,12 @@ public:
      */
     Eigen::Matrix<double, 6, 1> getChassisVelocity() const;
 
+    /**
+     * @brief 获取当前舵角（从qpos读取）
+     * @param steer_angles 输出数组，长度为3
+     */
+    void getCurrentSteerAngles(double steer_angles[3]) const;
+
 private:
     /**
      * @brief 鼠标按钮回调

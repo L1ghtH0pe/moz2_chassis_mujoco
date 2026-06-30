@@ -24,7 +24,8 @@ SwerveKinematics::SwerveKinematics()
 
 void SwerveKinematics::inverseKinematics(
     double vx, double vy, double wz,
-    WheelCommand wheels[3]
+    WheelCommand wheels[3],
+    const double* current_steer_angles
 ) {
     const double LOW_SPEED_THRESHOLD = 0.01;  // m/s
 
@@ -50,14 +51,16 @@ void SwerveKinematics::inverseKinematics(
             double new_angle = std::atan2(viy, vix);
             double new_speed = vi_magnitude / wheel_radius_;
 
-            // 归一化旧舵角到 [-π, π]
-            double last_angle_normalized = last_steer_angles_[i];
-            while (last_angle_normalized > M_PI) last_angle_normalized -= 2 * M_PI;
-            while (last_angle_normalized < -M_PI) last_angle_normalized += 2 * M_PI;
+            // 使用当前实际舵角（如果提供），否则使用上次目标角度
+            double current_angle = (current_steer_angles != nullptr) ? current_steer_angles[i] : last_steer_angles_[i];
+
+            // 归一化当前舵角到 [-π, π]
+            while (current_angle > M_PI) current_angle -= 2 * M_PI;
+            while (current_angle < -M_PI) current_angle += 2 * M_PI;
 
             // 舵角优化：比较两种方案，选择舵角变化更小的
             // 方案1：直接使用新舵角
-            double angle_diff1 = new_angle - last_angle_normalized;
+            double angle_diff1 = new_angle - current_angle;
             while (angle_diff1 > M_PI) angle_diff1 -= 2 * M_PI;
             while (angle_diff1 < -M_PI) angle_diff1 += 2 * M_PI;
             double cost1 = std::abs(angle_diff1);
@@ -66,7 +69,7 @@ void SwerveKinematics::inverseKinematics(
             double reverse_angle = new_angle + M_PI;
             if (reverse_angle > M_PI) reverse_angle -= 2 * M_PI;
             if (reverse_angle < -M_PI) reverse_angle += 2 * M_PI;
-            double angle_diff2 = reverse_angle - last_angle_normalized;
+            double angle_diff2 = reverse_angle - current_angle;
             while (angle_diff2 > M_PI) angle_diff2 -= 2 * M_PI;
             while (angle_diff2 < -M_PI) angle_diff2 += 2 * M_PI;
             double cost2 = std::abs(angle_diff2);
@@ -74,9 +77,9 @@ void SwerveKinematics::inverseKinematics(
             // 调试输出（每50次打印一次，且仅当有显著角度变化时）
             static int debug_counter = 0;
             if (++debug_counter % 50 == 0 && (cost1 > 0.1 || cost2 > 0.1)) {
-                printf("[轮%d舵角优化] 旧=%.2f° 新=%.2f° | 方案1(直接):%.1f° 方案2(反向):%.1f°",
+                printf("[轮%d舵角优化] 当前=%.2f° 新=%.2f° | 方案1(直接):%.1f° 方案2(反向):%.1f°",
                        i+1,
-                       last_angle_normalized * 180.0 / M_PI,
+                       current_angle * 180.0 / M_PI,
                        new_angle * 180.0 / M_PI,
                        cost1 * 180.0 / M_PI,
                        cost2 * 180.0 / M_PI);
