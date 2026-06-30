@@ -101,6 +101,21 @@ void MuJoCoSimulator::setActuatorCommands(const swerve_chassis::WheelCommand whe
     data_->ctrl[3] = wheels[0].wheel_speed;
     data_->ctrl[4] = wheels[1].wheel_speed;
     data_->ctrl[5] = wheels[2].wheel_speed;
+
+    // 添加调试输出
+    static int counter = 0;
+    if (++counter % 50 == 0) {
+        printf("=== 执行器指令 ===\n");
+        printf("ctrl[0-2] (舵角): %.2f, %.2f, %.2f rad\n",
+               data_->ctrl[0], data_->ctrl[1], data_->ctrl[2]);
+        printf("ctrl[3-5] (轮速): %.2f, %.2f, %.2f rad/s\n",
+               data_->ctrl[3], data_->ctrl[4], data_->ctrl[5]);
+
+        // 显示实际关节速度
+        printf("实际轮速: %.2f, %.2f, %.2f rad/s\n",
+               data_->qvel[6], data_->qvel[7], data_->qvel[8]);
+        printf("\n");
+    }
 }
 
 void MuJoCoSimulator::step() {

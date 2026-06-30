@@ -1,5 +1,6 @@
 #include "swerve_kinematics.h"
 #include <cmath>
+#include <cstdio>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -71,6 +72,20 @@ void SwerveKinematics::inverseKinematics(
         if (wheels[i].wheel_speed > MAX_WHEEL_SPEED) {
             wheels[i].wheel_speed = MAX_WHEEL_SPEED;
         }
+    }
+
+    // 添加调试输出
+    static int counter = 0;
+    if (++counter % 50 == 0) {
+        printf("=== 运动学输出 ===\n");
+        printf("输入速度: vx=%.3f, vy=%.3f, wz=%.3f\n", vx, vy, wz);
+        for (int i = 0; i < 3; i++) {
+            printf("轮%d: 舵角=%.2f rad (%.1f°), 轮速=%.2f rad/s\n",
+                   i+1, wheels[i].steer_angle,
+                   wheels[i].steer_angle * 180.0 / M_PI,
+                   wheels[i].wheel_speed);
+        }
+        printf("\n");
     }
 }
 
