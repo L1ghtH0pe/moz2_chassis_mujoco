@@ -30,35 +30,12 @@ bool VIOInput::update() {
     Eigen::Matrix3d R_WB = current_pose_data_.TWB.block<3,3>(0,0);
     Eigen::Vector3d velocity_world = current_pose_data_.velocity;  // 世界系速度
 
-    // 提取欧拉角（用于调试显示）
-    Eigen::Vector3d euler = extractEulerAngles(R_WB);
-    double yaw = euler(2);
-
     // 世界系速度转换为机体系速度
     // 机体系速度 = R_WB^T * 世界系速度
     Eigen::Vector3d velocity_body = R_WB.transpose() * velocity_world;
 
     // IMU角速度
     Eigen::Vector3d gyro = current_imu_data_.gyroscope;
-
-    // === 坐标系测试日志：只在有明显运动时打印 ===
-    double vw_norm = velocity_world.norm();
-    double gyro_norm = gyro.norm();
-    static int debug_count = 0;
-    if ((vw_norm > 0.02 || gyro_norm > 0.1) && (debug_count++ % 5 == 0)) {
-        printf("\n========== 坐标系测试 ==========\n");
-        printf("【VIO世界系速度】  X=%+.3f  Y=%+.3f  Z=%+.3f  (m/s)\n",
-               velocity_world.x(), velocity_world.y(), velocity_world.z());
-        printf("【VIO机体系速度】  X=%+.3f  Y=%+.3f  Z=%+.3f  (m/s)\n",
-               velocity_body.x(), velocity_body.y(), velocity_body.z());
-        printf("【IMU角速度】     X=%+.3f  Y=%+.3f  Z=%+.3f  (rad/s)\n",
-               gyro.x(), gyro.y(), gyro.z());
-        printf("【欧拉角】 Roll=%+.1f  Pitch=%+.1f  Yaw=%+.1f  (度)\n",
-               euler(0)*180/M_PI, euler(1)*180/M_PI, yaw*180/M_PI);
-        printf("--------------------------------\n");
-        printf(">> 判断：哪个分量最大且符号是什么？\n");
-        printf("================================\n");
-    }
 
     // === 设置输出速度指令（根据实测坐标系映射）===
     // VIO为相机坐标系(X右 Y下 Z前)，底盘为(X前 Y左 Z上)
@@ -174,13 +151,6 @@ double VIOInput::getLastUpdateTime() const {
 
 // ==================== 私有方法 ====================
 
-Eigen::Vector3d VIOInput::transformVelocity(const Eigen::Vector3d& world_vel,
-                                            const Eigen::Matrix3d& R_WB) const {
-    // 世界系速度转换为机体系速度
-    // V_body = R_WB^T * V_world
-    return R_WB.transpose() * world_vel;
-}
-
 Eigen::Vector3d VIOInput::extractEulerAngles(const Eigen::Matrix3d& R) const {
     // 提取欧拉角（ZYX顺序：Yaw-Pitch-Roll）
     // R = Rz(yaw) * Ry(pitch) * Rx(roll)
@@ -200,16 +170,6 @@ Eigen::Vector3d VIOInput::extractEulerAngles(const Eigen::Matrix3d& R) const {
     }
 
     return Eigen::Vector3d(roll, pitch, yaw);
-}
-
-VIOInput::MotionMode VIOInput::determineMotionMode(double pitch, double roll, double vz) const {
-    // 判断是否需要切换到坡面模式
-    if (std::abs(pitch) > PITCH_THRESHOLD ||
-        std::abs(roll) > ROLL_THRESHOLD ||
-        std::abs(vz) > VZ_THRESHOLD) {
-        return MotionMode::SLOPE;
-    }
-    return MotionMode::FLAT_GROUND;
 }
 
 bool VIOInput::validateVIOData(const swerve_chassis::VIOPoseData& data) const {
@@ -247,11 +207,4 @@ bool VIOInput::validateVIOData(const swerve_chassis::VIOPoseData& data) const {
     }
 
     return true;
-}
-
-Eigen::Vector3d VIOInput::lowPassFilter(const Eigen::Vector3d& raw_vel,
-                                        const Eigen::Vector3d& prev_vel,
-                                        double alpha) const {
-    // 低通滤波：output = alpha * raw + (1-alpha) * prev
-    return alpha * raw_vel + (1.0 - alpha) * prev_vel;
 }

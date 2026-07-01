@@ -75,32 +75,14 @@ public:
 
 private:
     /**
-     * @brief 坐标系转换：世界系速度 → 机体系速度
-     */
-    Eigen::Vector3d transformVelocity(const Eigen::Vector3d& world_vel,
-                                     const Eigen::Matrix3d& R_WB) const;
-
-    /**
      * @brief 提取欧拉角（ZYX顺序：Yaw-Pitch-Roll）
      */
     Eigen::Vector3d extractEulerAngles(const Eigen::Matrix3d& R) const;
 
     /**
-     * @brief 自动判断运动模式
-     */
-    MotionMode determineMotionMode(double pitch, double roll, double vz) const;
-
-    /**
      * @brief 数据验证
      */
     bool validateVIOData(const swerve_chassis::VIOPoseData& data) const;
-
-    /**
-     * @brief 低通滤波
-     */
-    Eigen::Vector3d lowPassFilter(const Eigen::Vector3d& raw_vel,
-                                  const Eigen::Vector3d& prev_vel,
-                                  double alpha) const;
 
     // 速度限制
     double max_linear_vel_;
@@ -122,14 +104,6 @@ private:
     std::atomic<bool> has_valid_data_;
     std::atomic<bool> enable_data_validation_;
     double last_update_time_;
-
-    // 低通滤波参数
-    static constexpr double FILTER_ALPHA = 0.2;
-
-    // 模式切换阈值
-    static constexpr double PITCH_THRESHOLD = 5.0 * M_PI / 180.0;  // 5度
-    static constexpr double ROLL_THRESHOLD = 5.0 * M_PI / 180.0;   // 5度
-    static constexpr double VZ_THRESHOLD = 0.01;                    // 0.01 m/s
 };
 
 #endif // VIO_INPUT_H
