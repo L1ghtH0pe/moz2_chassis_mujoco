@@ -78,13 +78,16 @@ bool VIODevice::start() {
 
     std::cout << "[VIO] 启动VIO数据流..." << std::endl;
 
+    // 设置HMD状态回调（根据示例代码，这个可能是必须的）
+    carina_a1088_set_hmd_state_callback(hmdStateCallbackAdapter, this);
+
     // 启动VIO数据流，注册回调
     carina_a1088_start(
         poseCallbackAdapter,    // pose回调
         vsyncCallbackAdapter,   // vsync回调
         imuCallbackAdapter,     // imu回调
-        nullptr,                // camera回调（不需要）
-        nullptr,                // points回调（不需要）
+        nullptr,                // camera回调（不需要图像数据）
+        nullptr,                // points回调（不需要特征点）
         eventCallbackAdapter,   // event回调
         this                    // user_data（传递this指针）
     );
@@ -187,6 +190,11 @@ void VIODevice::eventCallbackAdapter(unsigned char event, void* user_data) {
     // 事件回调：打印事件信息
     (void)user_data;
     std::cout << "[VIO] 事件: " << static_cast<int>(event) << std::endl;
+}
+
+void VIODevice::hmdStateCallbackAdapter(int state, void* user_data) {
+    // HMD状态回调
+    std::cout << "[VIO] HMD状态: " << state << std::endl;
 }
 
 // ==================== 数据解析 ====================

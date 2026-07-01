@@ -114,6 +114,7 @@ private:
     static void imuCallbackAdapter(float* imu, double ts, void* user_data);
     static void vsyncCallbackAdapter(double ts, void* user_data);
     static void eventCallbackAdapter(unsigned char event, void* user_data);
+    static void hmdStateCallbackAdapter(int state, void* user_data);
 
     // 解析pose数组到VIOPoseData
     static VIOPoseData parsePoseData(const float* pose, double timestamp);

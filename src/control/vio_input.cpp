@@ -90,6 +90,13 @@ Eigen::Vector3d VIOInput::getVelocityCommand() const {
 }
 
 void VIOInput::onVIOPoseUpdate(const swerve_chassis::VIOPoseData& data) {
+    // 首次接收数据时打印提示
+    static bool first_data = true;
+    if (first_data) {
+        std::cout << "[VIOInput] 首次接收到VIO Pose数据！" << std::endl;
+        first_data = false;
+    }
+
     // 数据验证
     if (enable_data_validation_ && !validateVIOData(data)) {
         std::cerr << "[VIOInput] VIO数据验证失败" << std::endl;
