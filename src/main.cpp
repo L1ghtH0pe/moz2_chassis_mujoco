@@ -96,13 +96,17 @@ int main(int argc, char** argv) {
             // 创建VIO输入控制器
             auto vio_input = std::make_unique<VIOInput>(2.0, 1.0);
 
-            // 设置VIO回调
-            vio_device->setPoseCallback([&vio_input](const swerve_chassis::VIOPoseData& data) {
-                vio_input->onVIOPoseUpdate(data);
+            // 先转移所有权到input指针
+            input = std::move(vio_input);
+
+            // 通过input指针设置VIO回调（避免野指针）
+            VIOInput* vio_input_ptr = dynamic_cast<VIOInput*>(input.get());
+            vio_device->setPoseCallback([vio_input_ptr](const swerve_chassis::VIOPoseData& data) {
+                vio_input_ptr->onVIOPoseUpdate(data);
             });
 
-            vio_device->setIMUCallback([&vio_input](const swerve_chassis::VIOIMUData& data) {
-                vio_input->onVIOIMUUpdate(data);
+            vio_device->setIMUCallback([vio_input_ptr](const swerve_chassis::VIOIMUData& data) {
+                vio_input_ptr->onVIOIMUUpdate(data);
             });
 
             // 启动VIO数据流
@@ -110,8 +114,6 @@ int main(int argc, char** argv) {
                 std::cerr << "错误: VIO数据流启动失败" << std::endl;
                 return 1;
             }
-
-            input = std::move(vio_input);
 
             std::cout << "[VIO模式] VIO设备启动成功，等待数据..." << std::endl;
 
