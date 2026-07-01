@@ -86,7 +86,7 @@ bool VIODevice::start() {
         poseCallbackAdapter,    // pose回调
         vsyncCallbackAdapter,   // vsync回调
         imuCallbackAdapter,     // imu回调
-        nullptr,                // camera回调（不需要图像数据）
+        cameraCallbackAdapter,  // camera回调（新版SDK要求，不能为nullptr）
         nullptr,                // points回调（不需要特征点）
         eventCallbackAdapter,   // event回调
         this                    // user_data（传递this指针）
@@ -195,6 +195,20 @@ void VIODevice::eventCallbackAdapter(unsigned char event, void* user_data) {
 void VIODevice::hmdStateCallbackAdapter(int state, void* user_data) {
     // HMD状态回调
     std::cout << "[VIO] HMD状态: " << state << std::endl;
+}
+
+void VIODevice::cameraCallbackAdapter(char* left, char* right, char* left1, char* right1,
+                                      double ts, int w, int h, void* user_data) {
+    // 相机回调：我们不需要图像数据，但必须提供回调函数
+    // 新版SDK要求不能传nullptr
+    (void)left;
+    (void)right;
+    (void)left1;
+    (void)right1;
+    (void)ts;
+    (void)w;
+    (void)h;
+    (void)user_data;
 }
 
 // ==================== 数据解析 ====================

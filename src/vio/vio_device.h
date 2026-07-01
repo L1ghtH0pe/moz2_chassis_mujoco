@@ -115,6 +115,8 @@ private:
     static void vsyncCallbackAdapter(double ts, void* user_data);
     static void eventCallbackAdapter(unsigned char event, void* user_data);
     static void hmdStateCallbackAdapter(int state, void* user_data);
+    static void cameraCallbackAdapter(char* left, char* right, char* left1, char* right1,
+                                      double ts, int w, int h, void* user_data);
 
     // 解析pose数组到VIOPoseData
     static VIOPoseData parsePoseData(const float* pose, double timestamp);
