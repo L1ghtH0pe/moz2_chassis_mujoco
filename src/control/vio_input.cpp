@@ -22,63 +22,91 @@ bool VIOInput::update() {
 
     std::lock_guard<std::mutex> lock(data_mutex_);
 
-    // 提取旋转矩阵和平移向量
-    Eigen::Matrix3d R_WB = current_pose_data_.TWB.block<3,3>(0,0);
-    Eigen::Vector3d position = current_pose_data_.TWB.block<3,1>(0,3);
+    // === VIO坐标系说明 ===
+    // 不进行坐标轴变换，直接使用VIO输出的速度和角速度
+    // 通过实际测试来确定方向映射关系
 
-    // 提取欧拉角
+    // 提取VIO的旋转矩阵和速度
+    Eigen::Matrix3d R_WB = current_pose_data_.TWB.block<3,3>(0,0);
+    Eigen::Vector3d velocity_world = current_pose_data_.velocity;  // 世界系速度
+
+    // 提取欧拉角（用于调试显示）
     Eigen::Vector3d euler = extractEulerAngles(R_WB);
-    double roll = euler(0);
-    double pitch = euler(1);
     double yaw = euler(2);
 
-    // 世界系速度
-    Eigen::Vector3d world_velocity = current_pose_data_.velocity;
+    // 世界系速度转换为机体系速度
+    // 机体系速度 = R_WB^T * 世界系速度
+    Eigen::Vector3d velocity_body = R_WB.transpose() * velocity_world;
 
-    // 自动判断运动模式
-    MotionMode auto_mode = determineMotionMode(pitch, roll, world_velocity.z());
+    // IMU角速度
+    Eigen::Vector3d gyro = current_imu_data_.gyroscope;
 
-    // 如果启用自动模式切换
-    // motion_mode_.store(auto_mode);  // 可选：自动切换模式
-
-    // 转换为机体系速度
-    Eigen::Vector3d chassis_velocity = transformVelocity(world_velocity, R_WB);
-
-    // 根据运动模式设置输出
-    Eigen::Vector3d raw_command;
-    if (motion_mode_.load() == MotionMode::FLAT_GROUND) {
-        // 平地模式：仅输出 vx, vy, wz
-        raw_command << chassis_velocity.x(), chassis_velocity.y(), 0.0;
-
-        // 从IMU获取角速度（如果有）
-        if (current_imu_data_.timestamp > 0) {
-            raw_command(2) = current_imu_data_.gyroscope.z();
-        }
-    } else {
-        // 坡面模式：输出 vx, vy, wz（z速度暂不使用）
-        // TODO: 扩展为6自由度控制
-        raw_command << chassis_velocity.x(), chassis_velocity.y(), 0.0;
-
-        if (current_imu_data_.timestamp > 0) {
-            raw_command(2) = current_imu_data_.gyroscope.z();
-        }
+    // === 坐标系测试日志：只在有明显运动时打印 ===
+    double vw_norm = velocity_world.norm();
+    double gyro_norm = gyro.norm();
+    static int debug_count = 0;
+    if ((vw_norm > 0.02 || gyro_norm > 0.1) && (debug_count++ % 5 == 0)) {
+        printf("\n========== 坐标系测试 ==========\n");
+        printf("【VIO世界系速度】  X=%+.3f  Y=%+.3f  Z=%+.3f  (m/s)\n",
+               velocity_world.x(), velocity_world.y(), velocity_world.z());
+        printf("【VIO机体系速度】  X=%+.3f  Y=%+.3f  Z=%+.3f  (m/s)\n",
+               velocity_body.x(), velocity_body.y(), velocity_body.z());
+        printf("【IMU角速度】     X=%+.3f  Y=%+.3f  Z=%+.3f  (rad/s)\n",
+               gyro.x(), gyro.y(), gyro.z());
+        printf("【欧拉角】 Roll=%+.1f  Pitch=%+.1f  Yaw=%+.1f  (度)\n",
+               euler(0)*180/M_PI, euler(1)*180/M_PI, yaw*180/M_PI);
+        printf("--------------------------------\n");
+        printf(">> 判断：哪个分量最大且符号是什么？\n");
+        printf("================================\n");
     }
 
-    // 低通滤波平滑速度指令
-    velocity_command_ = lowPassFilter(raw_command, prev_velocity_command_, FILTER_ALPHA);
+    // === 设置输出速度指令（根据实测坐标系映射）===
+    // VIO为相机坐标系(X右 Y下 Z前)，底盘为(X前 Y左 Z上)
+    // 实测结论：
+    //   向前移动 → 机体系Z+     => 底盘vx(前) = +机体系Z
+    //   向左移动 → 机体系X-     => 底盘vy(左) = -机体系X
+    //   顺时针转 → IMU角速度Y+  => 底盘wz(逆时针) = -IMU角速度Y
+    Eigen::Vector3d raw_command;
+    raw_command(0) = velocity_body.z();    // vx: 前 = 相机Z(前)
+    raw_command(1) = -velocity_body.x();   // vy: 左 = -相机X(右)
 
-    // 速度限幅
+    // 角速度：底盘wz = -相机Y轴角速度
+    if (current_imu_data_.timestamp > 0) {
+        raw_command(2) = -gyro.y();
+    } else {
+        raw_command(2) = 0.0;
+    }
+
+    // === 死区处理：过滤小噪声 ===
+    const double LINEAR_DEADZONE = 0.005;   // 减小线速度死区到 0.005 m/s
+    const double ANGULAR_DEADZONE = 0.02;   // 减小角速度死区到 0.02 rad/s
+
+    if (std::abs(raw_command.x()) < LINEAR_DEADZONE) raw_command.x() = 0.0;
+    if (std::abs(raw_command.y()) < LINEAR_DEADZONE) raw_command.y() = 0.0;
+    if (std::abs(raw_command.z()) < ANGULAR_DEADZONE) raw_command.z() = 0.0;
+
+    // === 放大速度指令便于观测 ===
+    const double SPEED_GAIN = 100.0;  // 100倍放大
+    raw_command *= SPEED_GAIN;
+
+    // 直接使用速度命令，不使用低通滤波（最快响应）
+    velocity_command_ = raw_command;
+
+    // 速度限幅（放大后需要更大的限幅值）
+    const double MAX_LINEAR_VEL = 50.0;   // 增大到50 m/s，适应100倍增益
+    const double MAX_ANGULAR_VEL = 20.0;  // 增大到20 rad/s
+
     double linear_speed = std::sqrt(velocity_command_.x() * velocity_command_.x() +
                                     velocity_command_.y() * velocity_command_.y());
-    if (linear_speed > max_linear_vel_) {
-        double scale = max_linear_vel_ / linear_speed;
+    if (linear_speed > MAX_LINEAR_VEL) {
+        double scale = MAX_LINEAR_VEL / linear_speed;
         velocity_command_.x() *= scale;
         velocity_command_.y() *= scale;
     }
 
     velocity_command_.z() = std::clamp(velocity_command_.z(),
-                                       -max_angular_vel_,
-                                       max_angular_vel_);
+                                       -MAX_ANGULAR_VEL,
+                                       MAX_ANGULAR_VEL);
 
     prev_velocity_command_ = velocity_command_;
 
