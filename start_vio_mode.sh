@@ -21,8 +21,8 @@ EXECUTABLE="${PROJECT_DIR}/build/swerve_sim"
 MODEL_FILE="${PROJECT_DIR}/models/wheel_base_modified.xml"
 
 # VIO配置
-VIO_CONFIG="${VIO_SDK_DIR}/config/carina_config.yaml"
-VIO_DATABASE="${VIO_SDK_DIR}/database/carina_vio.db"
+VIO_CONFIG="${VIO_SDK_DIR}/custom_config.yaml"
+VIO_DATABASE="${VIO_SDK_DIR}/database.bin"
 
 # 默认选项
 VERBOSE=""
