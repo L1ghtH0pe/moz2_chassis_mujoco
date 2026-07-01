@@ -56,18 +56,22 @@ print_usage() {
 check_vio_device() {
     echo -e "${YELLOW}[检查] 检查VIO设备连接...${NC}"
 
-    # 检查USB设备
-    if lsusb | grep -q "Carina\|A1088"; then
-        echo -e "${GREEN}[成功] 找到VIO设备${NC}"
+    local found_device=false
+
+    # 检查USB设备（检查Faraday/Carina/A1088等可能的名称）
+    if lsusb | grep -qE "Carina|A1088|Faraday|0906:5678"; then
+        echo -e "${GREEN}[成功] 找到VIO相关USB设备${NC}"
+        lsusb | grep -E "Carina|A1088|Faraday|0906:5678"
+        found_device=true
     else
-        echo -e "${YELLOW}[警告] 未找到VIO设备（可能使用不同的名称）${NC}"
-        echo "USB设备列表:"
+        echo -e "${YELLOW}[警告] 未通过USB设备名称找到VIO设备${NC}"
+        echo "当前USB设备列表:"
         lsusb | head -5
     fi
 
-    # 检查串口设备
+    # 检查串口设备（可选，某些VIO设备不使用串口）
     if ls /dev/ttyUSB* 2>/dev/null; then
-        echo -e "${GREEN}[成功] 找到串口设备${NC}"
+        echo -e "${GREEN}[信息] 找到串口设备${NC}"
         ls -l /dev/ttyUSB* 2>/dev/null
 
         # 检查权限
@@ -75,18 +79,24 @@ check_vio_device() {
             if [ -r "$dev" ] && [ -w "$dev" ]; then
                 echo -e "${GREEN}[成功] $dev 权限正常${NC}"
             else
-                echo -e "${RED}[错误] $dev 权限不足${NC}"
-                echo -e "${YELLOW}[提示] 运行: sudo chmod 666 $dev${NC}"
-                return 1
+                echo -e "${YELLOW}[警告] $dev 权限不足${NC}"
+                echo -e "${YELLOW}[提示] 如需使用串口，运行: sudo chmod 666 $dev${NC}"
             fi
         done
+        found_device=true
     else
-        echo -e "${RED}[错误] 未找到串口设备 /dev/ttyUSB*${NC}"
-        echo -e "${YELLOW}[提示] 请检查VIO设备USB连接${NC}"
-        return 1
+        echo -e "${YELLOW}[信息] 未找到串口设备（某些VIO设备不需要串口）${NC}"
     fi
 
     echo ""
+
+    # 总是返回成功，让VIO SDK自己检测设备
+    if [ "$found_device" = false ]; then
+        echo -e "${YELLOW}[提示] 设备检测不确定，但将继续启动让VIO SDK自行检测${NC}"
+        echo -e "${YELLOW}[提示] 如果启动失败，请确认VIO设备已正确连接${NC}"
+        echo ""
+    fi
+
     return 0
 }
 
@@ -245,16 +255,8 @@ if ! check_files; then
     exit 1
 fi
 
-# 检查VIO设备
-if ! check_vio_device; then
-    echo -e "${YELLOW}[警告] VIO设备检查失败${NC}"
-    read -p "是否继续启动？(y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${YELLOW}[取消] 用户取消启动${NC}"
-        exit 0
-    fi
-fi
+# 检查VIO设备（仅提示信息，不阻止启动）
+check_vio_device
 
 # 设置环境
 set_environment
