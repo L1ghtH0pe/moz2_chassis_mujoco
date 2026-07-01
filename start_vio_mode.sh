@@ -157,8 +157,9 @@ check_files() {
 set_environment() {
     echo -e "${YELLOW}[配置] 设置环境变量...${NC}"
 
-    # 设置库路径
-    export LD_LIBRARY_PATH="${VIO_SDK_DIR}/lib:$LD_LIBRARY_PATH"
+    # 设置库路径 - 优先使用新版VIO库
+    # 根据README_SLAM_SETUP.md，新版libcarina_vio(1).so与头文件配套
+    export LD_LIBRARY_PATH="$HOME/carina_deps:${VIO_SDK_DIR}/lib:$LD_LIBRARY_PATH"
     echo -e "${GREEN}[成功] LD_LIBRARY_PATH=${LD_LIBRARY_PATH}${NC}"
 
     # 切换到项目目录
